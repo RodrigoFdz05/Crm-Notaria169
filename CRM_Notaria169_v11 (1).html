@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Notaría 169</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --surface2: #f9f8f5;
+  --border: #e2dfd6;
+  --border2: #ccc9be;
+  --ink: #1c1b18;
+  --ink2: #5a5850;
+  --ink3: #9a9890;
+  --gold: #b8860b;
+  --gold-bg: #fdf8ec;
+  --gold-border: #e8d080;
+  --green: #2e6b3e;
+  --green-bg: #edf7f0;
+  --green-border: #a8d8b8;
+  --red: #8b1a1a;
+  --red-bg: #fdf0f0;
+  --red-border: #e8b0b0;
+  --blue: #1a3d6b;
+  --blue-bg: #eef4fc;
+  --blue-border: #a8c4e8;
+  --amber: #7a4800;
+  --amber-bg: #fdf4e4;
+  --amber-border: #e8c880;
+
+  --purple: #4a1d7a;
+  --purple-bg: #f3eeff;
+  --purple-border: #c8a8e8;
+  --font: 'IBM Plex Sans', sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: var(--bg); color: var(--ink); font-size: 14px; line-height: 1.5; }
+
+/* TOPBAR */
+.topbar {
+  background: var(--ink);
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 2px solid var(--gold);
+}
+.topbar-brand { color: #fff; font-size: 15px; font-weight: 600; letter-spacing: 0.04em; display: flex; align-items: center; gap: 10px; }
+.topbar-brand span { color: var(--gold-border); font-weight: 300; font-size: 12px; letter-spacing: 0.08em; }
+.upload-zone {
+  display: flex; align-items: center; gap: 10px;
+}
+.btn-upload {
+  background: var(--gold);
+  color: #fff;
+  border: none;
+  padding: 8px 20px;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: opacity 0.15s;
+}
+.btn-upload:hover { opacity: 0.85; }
+.file-name { color: var(--gold-border); font-size: 11px; font-family: var(--mono); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#file-input { display: none; }
+
+/* LAYOUT */
+.app { display: flex; height: calc(100vh - 56px); overflow: hidden; }
+
+/* SIDEBAR WRAP */
+.sidebar-wrap { position: relative; display: flex; flex-shrink: 0; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width 0.25s ease, min-width 0.25s ease;
+}
+.sidebar.collapsed { width: 0; min-width: 0; border-right: none; }
+.sidebar.collapsed .sidebar-header,
+.sidebar.collapsed .esc-list { opacity: 0; pointer-events: none; }
+
+/* TOGGLE BTN */
+.toggle-sidebar {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 44px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-left: none;
+  border-radius: 0 5px 5px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--ink3);
+  z-index: 20;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.07);
+  transition: color 0.15s, background 0.15s;
+}
+.toggle-sidebar:hover { color: var(--gold); background: var(--gold-bg); }
+.sidebar-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.sidebar-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink3); margin-bottom: 10px; }
+.search-input {
+  width: 100%;
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 7px 10px;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--surface);
+  outline: none;
+}
+.search-input:focus { border-color: var(--gold); }
+.filter-row { display: flex; gap: 6px; margin-top: 8px; }
+.filter-btn {
+  flex: 1;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  padding: 5px 4px;
+  font-size: 11px;
+  font-family: var(--font);
+  color: var(--ink2);
+  cursor: pointer;
+  border-radius: 3px;
+  text-align: center;
+  transition: all 0.15s;
+  font-weight: 500;
+}
+.filter-btn:hover { border-color: var(--gold); color: var(--gold); }
+.filter-btn.active { background: var(--gold); border-color: var(--gold); color: #fff; }
+.filter-btn.active.green { background: var(--green); border-color: var(--green); }
+.filter-btn.active.red { background: var(--red); border-color: var(--red); }
+.filter-btn.active.amber { background: var(--amber); border-color: var(--amber); }
+
+.esc-list { overflow-y: auto; flex: 1; }
+.esc-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.1s;
+  position: relative;
+}
+.esc-item:hover { background: var(--surface2); }
+.esc-item.active { background: var(--gold-bg); border-left: 3px solid var(--gold); }
+.esc-item-num { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--ink); }
+.esc-item-client { font-size: 12px; color: var(--ink2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 210px; }
+.esc-item-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 5px; }
+.esc-item-date { font-size: 11px; color: var(--ink3); font-family: var(--mono); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot-green { background: var(--green); }
+.dot-red { background: var(--red); }
+.dot-amber { background: var(--amber); }
+.esc-item-amount { font-size: 11px; font-family: var(--mono); font-weight: 500; }
+
+/* MAIN PANEL */
+.main-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+  background: var(--bg);
+}
+
+/* EMPTY */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 12px; color: var(--ink3); text-align: center;
+}
+.empty-icon { font-size: 48px; }
+.empty-state h2 { font-size: 18px; font-weight: 500; color: var(--ink2); }
+.empty-state p { font-size: 13px; max-width: 320px; line-height: 1.6; }
+.btn-big {
+  margin-top: 8px;
+  background: var(--gold);
+  color: #fff;
+  border: none;
+  padding: 12px 28px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+/* CARDS */
+.esc-header {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.esc-header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+.esc-title { font-family: var(--mono); font-size: 22px; font-weight: 500; color: var(--ink); }
+.esc-sub { font-size: 13px; color: var(--ink2); margin-top: 3px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.badge-green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.badge-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.badge-amber { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.badge-gray { background: var(--surface2); color: var(--ink3); border: 1px solid var(--border); }
+
+.meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.meta-item { }
+.meta-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink3); font-weight: 600; margin-bottom: 3px; }
+.meta-value { font-size: 13px; color: var(--ink); font-weight: 500; }
+
+/* SUMMARY NUMBERS */
+.summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.sum-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 18px;
+}
+.sum-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink3); font-weight: 600; margin-bottom: 6px; }
+.sum-value { font-family: var(--mono); font-size: 20px; font-weight: 500; }
+.sum-value.red { color: var(--red); }
+.sum-value.green { color: var(--green); }
+.sum-value.gold { color: var(--gold); }
+.sum-sub { font-size: 11px; color: var(--ink3); margin-top: 3px; font-family: var(--mono); }
+
+/* SECTIONS */
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.section-header {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  background: var(--surface2);
+}
+.section-header:hover { background: var(--surface); }
+.section-title { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+.section-title.hon { color: var(--blue); }
+.section-title.pagado { color: var(--green); }
+.section-title.pend { color: var(--red); }
+.section-toggle { font-size: 14px; color: var(--ink3); transition: transform 0.2s; }
+.section-toggle.open { transform: rotate(90deg); }
+.section-body { display: none; }
+.section-body.open { display: block; }
+
+/* HONORARIOS CARD */
+.hon-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+.hon-block {
+  padding: 18px 20px;
+}
+.hon-block:first-child { border-right: 1px solid var(--border); }
+.hon-block-title { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink3); font-weight: 600; margin-bottom: 14px; }
+.hon-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.hon-row:last-child { border-bottom: none; }
+.hon-row-label { font-size: 13px; color: var(--ink2); }
+.hon-row-value { font-family: var(--mono); font-size: 13px; font-weight: 500; }
+.hon-row-value.green { color: var(--green); }
+.hon-row-value.red { color: var(--red); }
+.hon-row-value.gold { color: var(--gold); }
+.hon-total-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 0; margin-top: 6px; border-top: 2px solid var(--border); }
+.hon-total-label { font-size: 13px; font-weight: 600; color: var(--ink); }
+.hon-total-value { font-family: var(--mono); font-size: 16px; font-weight: 600; }
+
+/* CONCEPTO TABLE */
+.concepto-table { width: 100%; border-collapse: collapse; }
+.concepto-table th {
+  padding: 8px 16px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  font-weight: 600;
+  text-align: left;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+.concepto-table th.right { text-align: right; }
+.concepto-table td { padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.concepto-table td.right { text-align: right; font-family: var(--mono); font-size: 12px; font-weight: 500; }
+.concepto-table td.right.green { color: var(--green); }
+.concepto-table td.right.red { color: var(--red); }
+.concepto-table tbody tr:last-child td { border-bottom: none; }
+.concepto-table tbody tr:hover { background: var(--surface2); }
+.check-icon { color: var(--green); font-size: 12px; }
+.x-icon { color: var(--red); font-size: 12px; }
+.zero { color: var(--ink3); }
+
+/* PROGRESS BAR */
+.prog-wrap { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+.prog-bar { height: 100%; border-radius: 2px; transition: width 0.3s; }
+
+/* GLOBAL STATS (top of main when no escritura selected) */
+.global-header { margin-bottom: 20px; }
+.global-title { font-size: 20px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+.global-sub { font-size: 13px; color: var(--ink3); }
+.global-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+.g-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  border-top: 3px solid var(--border2);
+}
+.g-card.green-top { border-top-color: var(--green); }
+.g-card.red-top { border-top-color: var(--red); }
+.g-card.amber-top { border-top-color: var(--amber); }
+.g-card.gold-top { border-top-color: var(--gold); }
+.g-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink3); font-weight: 600; margin-bottom: 6px; }
+.g-value { font-family: var(--mono); font-size: 22px; font-weight: 500; color: var(--ink); }
+.g-value.sm { font-size: 16px; }
+
+/* OVERVIEW TABLE */
+.ov-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.ov-table-head { padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--surface2); display: flex; align-items: center; justify-content: space-between; }
+.ov-table-title { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink2); }
+.ov-table { width: 100%; border-collapse: collapse; }
+.ov-table th { padding: 9px 14px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink3); font-weight: 600; text-align: left; border-bottom: 1px solid var(--border); cursor: pointer; white-space: nowrap; }
+.ov-table th:hover { color: var(--gold); }
+.ov-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 12px; vertical-align: middle; }
+.ov-table tbody tr:last-child td { border-bottom: none; }
+.ov-table tbody tr { cursor: pointer; transition: background 0.1s; }
+.ov-table tbody tr:hover { background: var(--gold-bg); }
+.ov-num { font-family: var(--mono); font-weight: 500; }
+.ov-client { font-weight: 500; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov-money { font-family: var(--mono); font-size: 12px; font-weight: 500; text-align: right; }
+.ov-money.red { color: var(--red); }
+.ov-money.green { color: var(--green); }
+.must-pay-cell { text-align: right; }
+.must-pay-big { font-family: var(--mono); font-size: 14px; font-weight: 600; }
+.must-pay-big.red { color: var(--red); }
+.must-pay-big.green { color: var(--green); }
+.hon-cell { text-align: center; }
+/* NAV BUTTONS */
+.nav-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.65);
+  padding: 7px 18px;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+.nav-btn:hover { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.4); }
+.nav-btn.active { background: var(--gold); border-color: var(--gold); color: #fff; }
+
+
+.prog-wrap2 { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+.prog-bar2 { height: 100%; border-radius: 3px; transition: width 0.4s; }
+.badge-purple { background: var(--purple-bg); color: var(--purple); border: 1px solid var(--purple-border); }
+.nav-btn.active.blue { background: var(--blue); border-color: var(--blue-border); }
+.nav-btn.active.purple { background: var(--purple); border-color: var(--purple-border); }
+
+/* SEARCH EXP MODAL */
+.exp-search-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.35);
+  color: rgba(255,255,255,0.8);
+  padding: 7px 14px;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.exp-search-btn:hover { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.6); }
+.exp-search-btn svg { width:14px;height:14px;flex-shrink:0; }
+
+.exp-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 500;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 100px;
+  backdrop-filter: blur(2px);
+}
+.exp-modal-overlay.open { display: flex; }
+.exp-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 520px;
+  max-width: calc(100vw - 32px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  overflow: hidden;
+  animation: modalIn 0.18s ease;
+}
+@keyframes modalIn {
+  from { opacity:0; transform:translateY(-12px) scale(0.98); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+.exp-modal-header {
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface2);
+}
+.exp-modal-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink2);
+}
+.exp-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--ink3);
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.1s, background 0.1s;
+}
+.exp-modal-close:hover { color: var(--ink); background: var(--border); }
+.exp-modal-body { padding: 20px 22px; }
+.exp-input-wrap {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.exp-input {
+  flex: 1;
+  border: 2px solid var(--border2);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-family: var(--mono);
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--surface);
+  outline: none;
+  letter-spacing: 0.05em;
+  transition: border-color 0.15s;
+}
+.exp-input:focus { border-color: var(--gold); }
+.exp-input::placeholder { color: var(--ink3); font-family: var(--font); font-size: 13px; letter-spacing: 0; }
+.exp-go-btn {
+  background: var(--gold);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.exp-go-btn:hover { opacity: 0.88; }
+.exp-results { max-height: 280px; overflow-y: auto; }
+.exp-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+.exp-result-item:hover { background: var(--gold-bg); border-color: var(--gold-border); }
+.exp-result-item:last-child { margin-bottom: 0; }
+.exp-result-left { display: flex; flex-direction: column; gap: 3px; }
+.exp-result-esc { font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--ink); }
+.exp-result-exp { font-family: var(--mono); font-size: 12px; color: var(--ink3); }
+.exp-result-client { font-size: 13px; font-weight: 500; color: var(--ink2); }
+.exp-result-op { font-size: 11px; color: var(--ink3); }
+.exp-result-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.exp-no-results { padding: 24px; text-align: center; color: var(--ink3); font-size: 13px; }
+.exp-hint { font-size: 11px; color: var(--ink3); margin-bottom: 14px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    NOTARÍA 169
+    <span>· CRM Escrituras</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px" id="topnav">
+    <button class="nav-btn active" id="nav-resumen" onclick="showGlobal()">Resumen</button>
+    <button class="nav-btn" id="nav-honorarios" onclick="showHonorarios()">Honorarios pendientes</button>
+    <button class="nav-btn" id="nav-isai" onclick="showIsai()">ISAI Pendiente</button>
+    <button class="exp-search-btn" id="btn-buscar-exp" onclick="openExpModal()" title="Buscar por No. Expediente o Escritura">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+      Buscar Exp.
+    </button>
+  </div>
+  <div class="upload-zone">
+    <span id="db-status" style="font-size:11px;font-family:var(--mono);color:#e8d080;margin-right:6px">Conectando…</span>
+    <span class="file-name" id="file-label">Sin archivo cargado</span>
+    <button class="btn-upload" onclick="document.getElementById('file-input').click()">&#8593; Cargar Excel</button>
+    <input type="file" id="file-input" accept=".xlsx,.xls" onchange="loadFile(event)">
+  </div>
+</div>
+
+<div class="app">
+  <div class="sidebar-wrap" id="sidebar-wrap" style="display:none">
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">Escrituras</div>
+        <input class="search-input" type="text" id="search" placeholder="Buscar escritura o cliente…" oninput="renderList()">
+        <div class="filter-row">
+          <button class="filter-btn active" id="fb-all" onclick="setFilter('all')">Todas</button>
+          <button class="filter-btn green" id="fb-green" onclick="setFilter('pagado')">Pagadas</button>
+          <button class="filter-btn red" id="fb-red" onclick="setFilter('pendiente')">Con saldo</button>
+        </div>
+      </div>
+      <div class="esc-list" id="esc-list"></div>
+    </div>
+    <button class="toggle-sidebar" id="toggle-btn" onclick="toggleSidebar()" title="Colapsar panel">◀</button>
+  </div>
+
+  <div class="main-panel" id="main-panel">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">📋</div>
+      <h2>Sin datos cargados</h2>
+      <p>Sube tu archivo Excel diario para ver el resumen completo de escrituras, honorarios y pendientes.</p>
+      <button class="btn-big" onclick="document.getElementById('file-input').click()">&#8593; Cargar archivo Excel</button>
+    </div>
+    <div id="content" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+// ── SUPABASE CONFIG ──────────────────────────────────────
+const SUPABASE_URL = 'https://qgldufbnnsogwnydvirf.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_JtzDjw1SXerbifi3XW8Nsg_mwhWYBNT';
+
+async function sbFetch(path, options = {}) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1' + path, {
+    ...options,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+  });
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+async function saveToSupabase(rows) {
+  setDbStatus('saving');
+  try {
+    await sbFetch('/escrituras?id=gte.0', { method: 'DELETE' });
+    const chunk = 100;
+    for (let i = 0; i < rows.length; i += chunk) {
+      const batch = rows.slice(i, i + chunk).map(r => ({
+        esc: r.esc, exp: r.exp,
+        fecha_firma: r.fecha instanceof Date ? r.fecha.toISOString().split('T')[0] : (r.fecha ? String(r.fecha).split('T')[0] : null),
+        cliente: r.cliente, operacion: r.op, abogado: r.abogado, status_op: r.statusOp,
+        debe: r.debe||0, ingreso: r.ingreso||0, saldo: r.saldo||0,
+        hon_bruto: r.hon_bruto||0, hon_iva: r.hon_iva||0, hon_total: r.hon_total||0, hon_pagado: r.hon_pagado||0,
+        total_pagado_3rd: r.totalPagado3rd||0, total_pend_3rd: r.totalPend3rd||0,
+        isr_pagado: r.isr_pag||0, isr_pend: r.isr_pend||0,
+        isr_ad_pagado: r.isr_adq_pag||0, isr_ad_pend: r.isr_adq_pend||0,
+        isai_pagado: r.isai_pag||0, isai_pend: r.isai_pend||0,
+        td_pagado: r.td_pag||0, td_pend: r.td_pend||0,
+        rpp_df_pagado: r.rpp_df_pag||0, rpp_edo_pagado: r.rpp_edo_pag||0, rpp_pend: r.rpp_pend||0,
+        iva_pagado: r.iva_pag||0, iva_pend: r.iva_pend||0,
+        avaluo_pagado: (r.pagados && r.pagados['Avaluo'])||0, avaluo_pend: (r.pendientes && r.pendientes['Avaluo'])||0,
+        erog_pagadas: (r.pagados && r.pagados['Erogaciones'])||0, erog_pend: (r.pendientes && r.pendientes['Erogaciones'])||0,
+        agua_pagada: (r.pagados && r.pagados['Agua'])||0, predial_pagado: (r.pagados && r.pagados['Predial'])||0,
+        no_adeudos_pend: (r.pendientes && r.pendientes['No Adeudos'])||0,
+        status: r.status||'pendiente',
+      }));
+      await sbFetch('/escrituras', { method: 'POST', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify(batch) });
+    }
+    setDbStatus('ok', rows.length);
+  } catch(e) {
+    console.error('Supabase save error:', e);
+    setDbStatus('error', 0, e.message);
+  }
+}
+
+async function loadFromSupabase() {
+  setDbStatus('loading');
+  try {
+    const data = await sbFetch('/escrituras?select=*&order=esc.asc&limit=2000');
+    if (!data || data.length === 0) { setDbStatus('empty'); return false; }
+    allRows = data.map(r => ({
+      esc: r.esc, exp: r.exp,
+      fecha: r.fecha_firma ? new Date(r.fecha_firma + 'T12:00:00') : null,
+      cliente: r.cliente, op: r.operacion, abogado: r.abogado, statusOp: r.status_op,
+      debe: r.debe||0, ingreso: r.ingreso||0, saldo: r.saldo||0,
+      hon_bruto: r.hon_bruto||0, hon_iva: r.hon_iva||0, hon_total: r.hon_total||0, hon_pagado: r.hon_pagado||0,
+      totalPagado3rd: r.total_pagado_3rd||0, totalPend3rd: r.total_pend_3rd||0,
+      isr_pag: r.isr_pagado||0, isr_pend: r.isr_pend||0,
+      isr_adq_pag: r.isr_ad_pagado||0, isr_adq_pend: r.isr_ad_pend||0,
+      isai_pag: r.isai_pagado||0, isai_pend: r.isai_pend||0,
+      td_pag: r.td_pagado||0, td_pend: r.td_pend||0,
+      rpp_df_pag: r.rpp_df_pagado||0, rpp_edo_pag: r.rpp_edo_pagado||0, rpp_pend: r.rpp_pend||0,
+      iva_pag: r.iva_pagado||0, iva_pend: r.iva_pend||0,
+      hon_pend: Math.max(0,(r.hon_total||0)-(r.hon_pagado||0)),
+      pendiente: Math.max(0, r.debe||0),
+      status: r.status||'pendiente',
+      total_imp_pend: (r.isr_pend||0)+(r.isr_ad_pend||0)+(r.isai_pend||0)+(r.td_pend||0)+(r.iva_pend||0),
+      total_reg_pend: r.rpp_pend||0,
+      total_reg_pag: (r.rpp_df_pagado||0)+(r.rpp_edo_pagado||0),
+      pagados: {
+        'ISR': r.isr_pagado||0,'ISR Adquisicion': r.isr_ad_pagado||0,'ISAI': r.isai_pagado||0,
+        'Traslado de Dominio': r.td_pagado||0,'RPP CDMX': r.rpp_df_pagado||0,'RPP Estado': r.rpp_edo_pagado||0,
+        'IVA': r.iva_pagado||0,'Avaluo': r.avaluo_pagado||0,'Erogaciones': r.erog_pagadas||0,
+        'Agua': r.agua_pagada||0,'Predial': r.predial_pagado||0,
+      },
+      pendientes: {
+        'ISR': r.isr_pend||0,'ISR Adquisicion': r.isr_ad_pend||0,'ISAI': r.isai_pend||0,
+        'Traslado de Dominio': r.td_pend||0,'RPP': r.rpp_pend||0,'IVA': r.iva_pend||0,
+        'Avaluo': r.avaluo_pend||0,'Erogaciones': r.erog_pend||0,'No Adeudos': r.no_adeudos_pend||0,
+      },
+    }));
+    setDbStatus('ok', allRows.length);
+    document.getElementById('sidebar-wrap').style.display = 'flex';
+    document.getElementById('topnav').style.display = 'flex';
+    renderList();
+    showGlobal();
+    return true;
+  } catch(e) {
+    console.error('Supabase load error:', e);
+    setDbStatus('error', 0, e.message);
+    return false;
+  }
+}
+
+function setDbStatus(state, count, msg) {
+  const el = document.getElementById('db-status');
+  if (!el) return;
+  const map = {
+    loading: ['#e8d080','Conectando a Supabase…'],
+    saving:  ['#e8d080','Guardando en Supabase…'],
+    ok:      ['#a8d8b8','Supabase · ' + count + ' escrituras'],
+    error:   ['#e8b0b0','Error Supabase' + (msg ? ' · ' + msg.slice(0,50) : '')],
+    empty:   ['#e8d080','Sin datos — carga tu Excel'],
+  };
+  const [color, text] = map[state] || map.empty;
+  el.style.color = color;
+  el.textContent = text;
+}
+
+window.addEventListener('DOMContentLoaded', function() { loadFromSupabase(); });
+</script>
+
+<script>
+let allRows = [];
+let activeFilter = 'all';
+let activeEsc = null;
+
+// ── LOAD FILE ──────────────────────────────────────────────
+function loadFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('file-label').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const wb = XLSX.read(ev.target.result, { type: 'array', cellDates: true });
+      const ws = wb.Sheets['Master'];
+      if (!ws) { alert('No se encontró la hoja "Master".'); return; }
+      const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+      processData(raw);
+    } catch(err) { alert('Error: ' + err.message); }
+  };
+  reader.readAsArrayBuffer(file);
+  e.target.value = '';
+}
+
+// ── PROCESS DATA ──────────────────────────────────────────
+function processData(raw) {
+  const HEADER = 9, START = 10;
+  const H = raw[HEADER];
+  const ci = name => H.findIndex(h => h && h.toString().toLowerCase().includes(name.toLowerCase()));
+
+  const C = {
+    nombre: ci('NOMBRE'), exp: ci('Exp'), fecha: ci('FECHA_FIRMA'), esc: ci('Esc'),
+    cliente: ci('Clente'), op: ci('Operacion'), totalPagar: ci('TOTAL_APAGAR'),
+    ingreso: ci('ENTRADAS_COMP'), debe: ci('Debe Cliente'), saldo: ci('Sobrante'),
+    liquidado: ci('Liquidado'), fechaPago: ci('FECHA_PAGO'),
+    honorarios: ci('TOTAL_BRUTO'), iva: ci('CUOTA_IVA'), totalHon: ci('TOTAL_APAGAR'),
+    status: ci('Columna2'),
+  };
+
+  const PENDIENTES = [
+    { col: 'ISR PEND', label: 'ISR' },
+    { col: 'ISR ADQ PENDIENTE', label: 'ISR Adquisición' },
+    { col: 'ISAI PENDIENTE', label: 'ISAI' },
+    { col: 'TD PENDIENTE', label: 'Traslado de Dominio' },
+    { col: 'RPP PENDIENTE', label: 'RPP' },
+    { col: 'IVA PENDIENTE', label: 'IVA' },
+    { col: 'AVALUO PEND', label: 'Avalúo' },
+    { col: 'EROGACIONES PEND', label: 'Erogaciones' },
+    { col: 'NO ADEUDOS PENDIENTE', label: 'No Adeudos' },
+  ].map(x => ({ ...x, ci: ci(x.col) }));
+
+  const PAGADOS = [
+    { col: 'ISR PAGADO', label: 'ISR' },
+    { col: 'ISR AD PAGADO', label: 'ISR Adquisición' },
+    { col: 'ISAI PAGADO', label: 'ISAI' },
+    { col: 'TD PAGADO', label: 'Traslado de Dominio' },
+    { col: 'RPP DF PAGADO', label: 'RPP CDMX' },
+    { col: 'RPP EDO PAGADO', label: 'RPP Estado' },
+    { col: 'IVA PAGADO', label: 'IVA' },
+    { col: 'AVALUO PAGADO', label: 'Avalúo' },
+    { col: 'EROGACIONES PAGADAS', label: 'Erogaciones' },
+    { col: 'AGUA PAGADA', label: 'Agua' },
+    { col: 'PREDIAL PAGADO', label: 'Predial' },
+  ].map(x => ({ ...x, ci: ci(x.col) }));
+
+  const byEsc = {};
+  for (let r = START; r < raw.length; r++) {
+    const row = raw[r];
+    if (!row || row.every(c => c === null)) continue;
+    const esc = row[C.esc];
+    if (!esc) continue;
+    const key = String(esc);
+    if (!byEsc[key]) {
+      byEsc[key] = {
+        esc: key, exp: row[C.exp], fecha: row[C.fecha],
+        cliente: row[C.cliente], op: row[C.op], abogado: row[C.nombre],
+        statusOp: row[C.status],
+        debe: 0, saldo: 0, ingreso: 0,
+        hon_bruto: 0, hon_iva: 0, hon_total: 0, hon_pagado: 0,
+        pendientes: {}, pagados: {},
+      };
+      PENDIENTES.forEach(p => { byEsc[key].pendientes[p.label] = 0; });
+      PAGADOS.forEach(p => { byEsc[key].pagados[p.label] = 0; });
+    }
+    const e = byEsc[key];
+    e.debe   += n(row[C.debe]);
+    e.saldo  += n(row[C.saldo]);
+    e.ingreso += n(row[C.ingreso]);
+
+    const hon = n(row[C.honorarios]);
+    const iva = n(row[C.iva]);
+    const totH = n(row[C.totalHon]);
+    if (hon > 0) {
+      e.hon_bruto += hon;
+      e.hon_iva   += iva;
+      e.hon_total += totH;
+      const liq = n(row[C.liquidado]);
+      const fp = row[C.fechaPago];
+      if (liq > 0 || (fp && fp !== null)) e.hon_pagado += totH;
+    }
+
+    PENDIENTES.forEach(p => { if (p.ci >= 0) e.pendientes[p.label] += n(row[p.ci]); });
+    PAGADOS.forEach(p => { if (p.ci >= 0) e.pagados[p.label] += n(row[p.ci]); });
+  }
+
+  allRows = Object.values(byEsc).map(e => {
+    const totalPend3rd = Object.values(e.pendientes).reduce((a,b)=>a+b,0);
+    const pendiente = Math.max(0, e.debe + totalPend3rd);
+    const totalPagado3rd = Object.values(e.pagados).reduce((a,b)=>a+b,0);
+    const totalGeneral = e.hon_total + e.ingreso;
+    const hon_pend = Math.max(0, e.hon_total - e.hon_pagado);
+    let status = pendiente <= 0.5 ? 'pagado' : e.ingreso > 0.5 ? 'parcial' : 'pendiente';
+    return { ...e, pendiente, totalPagado3rd, totalPend3rd, hon_pend, status };
+  });
+
+  allRows.sort((a,b) => parseInt(a.esc) - parseInt(b.esc));
+  // Fix status: solo se basa en Debe Cliente
+  allRows = allRows.map(e => ({
+    ...e,
+    status: Math.abs(e.debe) < 1 ? 'pagado' : e.ingreso > 0.5 ? 'parcial' : 'pendiente',
+  }));
+  // Compute granular tax/registry fields
+  allRows = allRows.map(e => {
+    // Pull from pendientes/pagados maps
+    const ip = e.pendientes;
+    const ig = e.pagados;
+    return {
+      ...e,
+      isr_pend: ip['ISR'] || 0,
+      isr_adq_pend: ip['ISR Adquisición'] || 0,
+      isai_pend: ip['ISAI'] || 0,
+      td_pend: ip['Traslado de Dominio'] || 0,
+      iva_pend: ip['IVA'] || 0,
+      rpp_pend: ip['RPP'] || 0,
+      isr_pag: ig['ISR'] || 0,
+      isr_adq_pag: ig['ISR Adquisición'] || 0,
+      isai_pag: ig['ISAI'] || 0,
+      td_pag: ig['Traslado de Dominio'] || 0,
+      iva_pag: ig['IVA'] || 0,
+      rpp_df_pag: ig['RPP CDMX'] || 0,
+      rpp_edo_pag: ig['RPP Estado'] || 0,
+      total_imp_pend: (ip['ISR']||0)+(ip['ISR Adquisición']||0)+(ip['ISAI']||0)+(ip['Traslado de Dominio']||0)+(ip['IVA']||0),
+      total_reg_pend: ip['RPP'] || 0,
+      total_reg_pag: (ig['RPP CDMX']||0)+(ig['RPP Estado']||0),
+    };
+  });
+
+  document.getElementById('sidebar-wrap').style.display = 'flex';
+  document.getElementById('topnav').style.display = 'flex';
+  renderList();
+  showGlobal();
+  saveToSupabase(allRows);
+}
+
+function n(v) {
+  if (v === null || v === undefined || v === '') return 0;
+  const x = parseFloat(String(v).replace(/[,$\s]/g,''));
+  return isNaN(x) ? 0 : x;
+}
+
+function fmx(v) {
+  if (v === 0) return '$0';
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 2 }).format(v);
+}
+
+function fdate(d) {
+  if (!d) return '—';
+  try {
+    const dt = d instanceof Date ? d : new Date(d);
+    if (isNaN(dt)) return String(d);
+    return dt.toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+  } catch { return String(d); }
+}
+
+// ── FILTERS ───────────────────────────────────────────────
+function setFilter(f) {
+  activeFilter = f;
+  ['all','green','red'].forEach(x => document.getElementById('fb-'+x)?.classList.remove('active'));
+  const map = { all:'fb-all', pagado:'fb-green', pendiente:'fb-red' };
+  document.getElementById(map[f])?.classList.add('active');
+  renderList();
+}
+
+function getFiltered() {
+  const q = (document.getElementById('search')?.value||'').toLowerCase();
+  return allRows.filter(r => {
+    const debeStatus = Math.abs(r.debe) < 1 ? 'pagado' : 'pendiente';
+    const matchF = activeFilter === 'all' || debeStatus === activeFilter;
+    const matchQ = !q || [r.esc, r.exp, r.cliente, r.op, r.abogado].some(v => v && String(v).toLowerCase().includes(q));
+    return matchF && matchQ;
+  });
+}
+
+// ── SIDEBAR LIST ──────────────────────────────────────────
+function renderList() {
+  const list = document.getElementById('esc-list');
+  const rows = getFiltered();
+  if (!rows.length) { list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--ink3);font-size:12px">Sin resultados</div>'; return; }
+  list.innerHTML = rows.map(r => {
+    const debeAbs = Math.abs(r.debe);
+    const dotClass = debeAbs < 1 ? 'dot-green' : 'dot-red';
+    const amtDisplay = debeAbs < 1
+      ? `<span style="color:var(--green)">Pagado</span>`
+      : `<span style="color:var(--red)">${fmx(r.debe)}</span>`;
+    return `<div class="esc-item${activeEsc===r.esc?' active':''}" onclick="showEsc('${r.esc}')">
+      <div class="esc-item-num">Esc. ${r.esc}</div>
+      <div class="esc-item-client">${r.cliente||'Sin cliente'}</div>
+      <div class="esc-item-meta">
+        <span class="esc-item-date">${fdate(r.fecha)}</span>
+        <span style="display:flex;align-items:center;gap:5px">
+          <span class="dot ${dotClass}"></span>
+          ${amtDisplay}
+        </span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── GLOBAL OVERVIEW ───────────────────────────────────────
+function showGlobal() {
+  activeEsc = null;
+  setActiveNav('nav-resumen');
+  document.getElementById('empty-state').style.display = 'none';
+  const content = document.getElementById('content');
+  content.style.display = 'block';
+
+  const total = allRows.length;
+  const pagadas = allRows.filter(r=>r.status==='pagado').length;
+  const parciales = allRows.filter(r=>r.status==='parcial').length;
+  const pends = allRows.filter(r=>r.status==='pendiente').length;
+  const totalDeuda = allRows.reduce((s,r)=>s+r.pendiente,0);
+  const totalHonPend = allRows.reduce((s,r)=>s+r.hon_pend,0);
+  const totalHonPagado = allRows.reduce((s,r)=>s+r.hon_pagado,0);
+  const totalImpPend = allRows.reduce((s,r)=>s+(r.total_imp_pend||0),0);
+  const totalRegPend = allRows.reduce((s,r)=>s+(r.total_reg_pend||0),0);
+
+  const tableRows = [...allRows].sort((a,b)=>parseInt(a.esc)-parseInt(b.esc)).map(r => {
+    const honBadge = r.hon_total<=0 ? `<span class="badge badge-gray">—</span>`
+      : r.hon_pend<=0.5 ? `<span class="badge badge-green">✓ Pagados<br><small>${fmx(r.hon_total)}</small></span>`
+      : `<span class="badge badge-red">✗ Pend: ${fmx(r.hon_pend)}</span>`;
+    const statusBadge = r.status==='pagado' ? `<span class="badge badge-green">✓ Pagado</span>`
+      : r.status==='parcial' ? `<span class="badge badge-amber">◑ Parcial</span>`
+      : `<span class="badge badge-red">✗ Pendiente</span>`;
+    return `<tr onclick="showEsc('${r.esc}')">
+      <td><span class="ov-num">Esc. ${r.esc}</span><div style="color:var(--ink3);font-family:var(--mono);font-size:11px;margin-top:2px">Exp. ${r.exp||'—'}</div></td>
+      <td style="color:var(--ink3);font-size:11px;font-family:var(--mono);white-space:nowrap">${fdate(r.fecha)}</td>
+      <td><div style="font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.cliente||'—'}</div></td>
+      <td style="font-size:11px;color:var(--ink2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.op||'—'}</td>
+      <td style="font-size:11px;color:var(--ink2);white-space:nowrap">${(r.abogado||'—').replace('LIC. ','').replace('LIC.','')}</td>
+      <td class="ov-money">${fmx(r.hon_bruto)}</td>
+      <td class="ov-money">${fmx(r.hon_iva)}</td>
+      <td class="ov-money" style="font-weight:600;color:var(--gold)">${fmx(r.hon_total)}</td>
+      <td class="hon-cell">${honBadge}</td>
+      <td class="ov-money green">${fmx(r.totalPagado3rd)}</td>
+      <td class="ov-money ${r.totalPend3rd>0?'red':''}">${r.totalPend3rd>0?fmx(r.totalPend3rd):'<span style="color:var(--green)">$0</span>'}</td>
+      <td style="text-align:right;background:${r.debe>0.5?'var(--red-bg)':r.debe<-0.5?'var(--amber-bg)':'var(--surface2)'};padding:10px 14px">
+        <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:${r.debe>0.5?'var(--red)':r.debe<-0.5?'var(--amber)':'var(--ink3)'}">
+          ${fmx(r.debe)}
+        </span>
+      </td>
+      <td style="text-align:center">${statusBadge}</td>
+    </tr>`;
+  }).join('');
+
+  content.innerHTML = `
+    <div class="global-header">
+      <div class="global-title">Resumen General</div>
+      <div class="global-sub">${total} escrituras cargadas · Haz clic en cualquier escritura para ver el detalle completo</div>
+    </div>
+
+    <div class="global-grid">
+      <div class="g-card"><div class="g-label">Total escrituras</div><div class="g-value">${total}</div></div>
+      <div class="g-card green-top"><div class="g-label">Totalmente pagadas</div><div class="g-value" style="color:var(--green)">${pagadas}</div></div>
+      <div class="g-card amber-top"><div class="g-label">Pago parcial</div><div class="g-value" style="color:var(--amber)">${parciales}</div></div>
+      <div class="g-card red-top"><div class="g-label">Sin pago</div><div class="g-value" style="color:var(--red)">${pends}</div></div>
+      <div class="g-card gold-top"><div class="g-label">Total deuda pendiente</div><div class="g-value sm" style="color:var(--red)">${fmx(totalDeuda)}</div></div>
+    </div>
+    <div class="summary-grid" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
+      <div class="sum-card" style="border-top:3px solid var(--blue)">
+        <div class="sum-label">⚖ Impuestos pendientes</div>
+        <div class="sum-value red">${fmx(totalImpPend)}</div>
+        <div class="sum-sub">${allRows.filter(r=>r.total_imp_pend>0).length} escrituras · ISR + ISAI</div>
+      </div>
+      <div class="sum-card" style="border-top:3px solid var(--purple)">
+        <div class="sum-label">🏛 Derechos de registro pend.</div>
+        <div class="sum-value" style="color:var(--purple)">${fmx(totalRegPend)}</div>
+        <div class="sum-sub">${allRows.filter(r=>r.total_reg_pend>0).length} escrituras · RPP pendiente</div>
+      </div>
+    </div>
+
+    <div class="summary-grid" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
+      <div class="sum-card" style="border-top:3px solid var(--green)">
+        <div class="sum-label">Honorarios cobrados</div>
+        <div class="sum-value green">${fmx(totalHonPagado)}</div>
+      </div>
+      <div class="sum-card" style="border-top:3px solid var(--red)">
+        <div class="sum-label">Honorarios por cobrar</div>
+        <div class="sum-value red">${fmx(totalHonPend)}</div>
+      </div>
+    </div>
+
+    <div class="ov-table-wrap">
+      <div class="ov-table-head">
+        <span class="ov-table-title">Todas las escrituras</span>
+        <span style="font-size:11px;color:var(--ink3)">Clic en una fila para ver el desglose</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="ov-table">
+          <thead><tr>
+            <th>Escritura / Exp.</th>
+            <th>Fecha firma</th>
+            <th>Cliente</th>
+            <th>Operación</th>
+            <th>Abogado</th>
+            <th style="text-align:right">Hon. bruto</th>
+            <th style="text-align:right">IVA</th>
+            <th style="text-align:right">Total honorarios</th>
+            <th style="text-align:center;background:var(--blue-bg);color:var(--blue)">Estado honorarios</th>
+            <th style="text-align:right">Pagado a terceros</th>
+            <th style="text-align:right">Pend. a terceros</th>
+            <th style="text-align:right;background:var(--surface2);color:var(--ink2)">Debe Cliente</th>
+            <th style="text-align:center">Estado general</th>
+          </tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  renderList();
+}
+
+// ── ESCRITURA DETAIL ──────────────────────────────────────
+function showEsc(esc) {
+  activeEsc = esc;
+  ['nav-resumen','nav-honorarios','nav-isai'].forEach(x => document.getElementById(x)?.classList.remove('active'));
+  renderList();
+  const r = allRows.find(x => x.esc === esc);
+  if (!r) return;
+
+  document.getElementById('empty-state').style.display = 'none';
+  const content = document.getElementById('content');
+  content.style.display = 'block';
+
+  const debeAbs = Math.abs(r.debe);
+  const debePagado = debeAbs < 1;
+
+  const statusBadge = debePagado
+    ? `<span class="badge badge-green">✓ Pagado</span>`
+    : `<span class="badge badge-red">✗ Saldo pendiente</span>`;
+
+  const honBadge = r.hon_total<=0 ? `<span class="badge badge-gray">Sin factura</span>`
+    : r.hon_pend<=0.5 ? `<span class="badge badge-green">✓ Honorarios pagados</span>`
+    : r.hon_pagado>0.5 ? `<span class="badge badge-amber">◑ Honorarios parciales</span>`
+    : `<span class="badge badge-red">✗ Honorarios pendientes</span>`;
+
+  const honPct = r.hon_total > 0 ? Math.min(100, Math.round(r.hon_pagado/r.hon_total*100)) : 0;
+  const honProgColor = honPct===100 ? 'var(--green)' : honPct>0 ? 'var(--amber)' : 'var(--red)';
+
+  const pct3rd = (r.totalPagado3rd + r.totalPend3rd) > 0 ? Math.min(100,Math.round(r.totalPagado3rd/(r.totalPagado3rd+r.totalPend3rd)*100)) : 0;
+
+  content.innerHTML = `
+    <!-- BREADCRUMB -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <button onclick="showGlobal()" style="background:none;border:1px solid var(--border2);padding:7px 16px;border-radius:4px;font-size:12px;cursor:pointer;font-family:var(--font);color:var(--ink2)">← Volver al resumen</button>
+      <span style="font-size:12px;color:var(--ink3)">Escritura ${r.esc} · ${r.cliente||''}</span>
+    </div>
+
+    <!-- HERO HEADER -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px 36px;margin-bottom:20px;border-top:5px solid ${debePagado?'var(--green)':'var(--red)'}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:24px">
+        <div>
+          <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:8px">Notaría 169 · Escritura Pública</div>
+          <div style="font-family:var(--mono);font-size:38px;font-weight:500;color:var(--ink);line-height:1;margin-bottom:10px">No. ${r.esc}</div>
+          <div style="font-size:18px;color:var(--ink);font-weight:500;margin-bottom:4px">${r.cliente||'—'}</div>
+          <div style="font-size:14px;color:var(--ink2)">${r.op||'—'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
+          <div style="transform:scale(1.15);transform-origin:right">${statusBadge}</div>
+          <div style="transform:scale(1.15);transform-origin:right">${honBadge}</div>
+          <div style="font-size:12px;color:var(--ink3);text-align:right;margin-top:6px;line-height:1.7">
+            <div>Exp. <strong>${r.exp||'—'}</strong></div>
+            <div>${fdate(r.fecha)}</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding-top:20px;border-top:1px solid var(--border)">
+        <div style="padding-right:24px;border-right:1px solid var(--border)">
+          <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);font-weight:600;margin-bottom:5px">Abogado</div>
+          <div style="font-size:14px;font-weight:500">${(r.abogado||'—').replace('LIC. ','').replace('LIC.','')}</div>
+        </div>
+        <div style="padding:0 24px;border-right:1px solid var(--border)">
+          <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);font-weight:600;margin-bottom:5px">Expediente</div>
+          <div style="font-size:14px;font-weight:500;font-family:var(--mono)">${r.exp||'—'}</div>
+        </div>
+        <div style="padding:0 24px;border-right:1px solid var(--border)">
+          <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);font-weight:600;margin-bottom:5px">Fecha de firma</div>
+          <div style="font-size:14px;font-weight:500">${fdate(r.fecha)}</div>
+        </div>
+        <div style="padding-left:24px">
+          <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);font-weight:600;margin-bottom:5px">Status</div>
+          <div style="font-size:14px;font-weight:500">${r.statusOp||'—'}</div>
+        </div>
+      </div>
+    </div>
+
+    ${debePagado ? `
+    <!-- PAGADO: solo mostrar banners verdes + honorarios -->
+    <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:10px;padding:28px 32px;margin-bottom:20px;display:flex;align-items:center;gap:20px">
+      <div style="width:56px;height:56px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;flex-shrink:0">✓</div>
+      <div>
+        <div style="font-size:18px;font-weight:700;color:var(--green);margin-bottom:4px">Debe Cliente: $0</div>
+        <div style="font-size:13px;color:var(--ink2)">Esta escritura no tiene saldo pendiente del cliente. Aparece como <strong>pagada</strong>.</div>
+      </div>
+    </div>` : `
+    <!-- CON SALDO: mostrar KPI cards -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px">
+      <div style="background:var(--red-bg);border:1px solid var(--red-border);border-radius:10px;padding:24px 22px;border-top:5px solid var(--red)">
+        <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--red);margin-bottom:10px">⚠ Debe Cliente</div>
+        <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--red);line-height:1;margin-bottom:8px">${fmx(r.debe)}</div>
+        <div style="font-size:12px;font-weight:500;color:var(--red)">Saldo pendiente en esta escritura</div>
+      </div>
+      <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:10px;padding:24px 22px;border-top:5px solid var(--green)">
+        <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--green);margin-bottom:10px">✓ Pagado a terceros</div>
+        <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--green);line-height:1;margin-bottom:10px">${fmx(r.totalPagado3rd)}</div>
+        <div style="font-size:11px;color:var(--ink3);margin-bottom:6px">${pct3rd}% del total cubierto</div>
+        <div style="height:8px;background:var(--green-border);border-radius:4px;overflow:hidden"><div style="height:100%;width:${pct3rd}%;background:var(--green);border-radius:4px"></div></div>
+      </div>
+      <div style="background:${r.totalPend3rd>0?'var(--red-bg)':'var(--green-bg)'};border:1px solid ${r.totalPend3rd>0?'var(--red-border)':'var(--green-border)'};border-radius:10px;padding:24px 22px;border-top:5px solid ${r.totalPend3rd>0?'var(--red)':'var(--green)'}">
+        <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:${r.totalPend3rd>0?'var(--red)':'var(--green)'};margin-bottom:10px">✗ Pend. a terceros</div>
+        <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:${r.totalPend3rd>0?'var(--red)':'var(--green)'};line-height:1;margin-bottom:8px">${r.totalPend3rd>0?fmx(r.totalPend3rd):'$0'}</div>
+        <div style="font-size:12px;font-weight:500;color:${r.totalPend3rd>0?'var(--red)':'var(--green)'}">${r.totalPend3rd>0?'Por liquidar':'✓ Todo al día'}</div>
+      </div>
+    </div>
+
+    <!-- PENDIENTES A TERCEROS — solo si hay -->
+    ${r.totalPend3rd > 0 ? `
+    <div style="background:var(--surface);border:1px solid var(--red-border);border-radius:10px;overflow:hidden;margin-bottom:14px">
+      <div style="padding:16px 22px;background:var(--red-bg);border-bottom:1px solid var(--red-border);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:12px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--red)">✗ Pendientes de pago a terceros</div>
+        <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--red)">${fmx(r.totalPend3rd)}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+        ${Object.entries(r.pendientes).filter(([,v])=>v>0).map(([k,v])=>`
+          <div style="padding:18px 22px;border-bottom:1px solid var(--border);border-right:1px solid var(--border)">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;color:var(--ink3);margin-bottom:6px">${k}</div>
+            <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--red)">${fmx(v)}</div>
+          </div>`).join('')}
+      </div>
+    </div>` : ''}
+    `}
+
+    <!-- HONORARIOS CARD — siempre visible -->
+    <div style="background:var(--surface);border:1px solid var(--blue-border);border-radius:10px;overflow:hidden;margin-bottom:14px">
+      <div style="padding:18px 22px;background:var(--blue-bg);border-bottom:1px solid var(--blue-border);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:12px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--blue)">★ Honorarios Notariales</div>
+        ${honBadge}
+      </div>
+      <div style="padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div style="background:var(--surface2);border-radius:8px;padding:16px 18px;border:1px solid var(--border)">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);font-weight:600;margin-bottom:12px">Desglose</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px;color:var(--ink2)">Honorarios</span>
+            <span style="font-family:var(--mono);font-size:14px;font-weight:500">${fmx(r.hon_bruto)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px;color:var(--ink2)">IVA (16%)</span>
+            <span style="font-family:var(--mono);font-size:14px;font-weight:500">${fmx(r.hon_iva)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 0">
+            <span style="font-size:14px;font-weight:700">Total</span>
+            <span style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--gold)">${fmx(r.hon_total)}</span>
+          </div>
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:16px 18px;border:1px solid var(--border)">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);font-weight:600;margin-bottom:12px">Estado de cobro</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px;color:var(--ink2)">Cobrado</span>
+            <span style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--green)">${fmx(r.hon_pagado)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px;color:var(--ink2)">Pendiente</span>
+            <span style="font-family:var(--mono);font-size:14px;font-weight:700;color:${r.hon_pend>0?'var(--red)':'var(--green)'}">${r.hon_pend>0?fmx(r.hon_pend):'✓ $0'}</span>
+          </div>
+          <div style="margin-top:10px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px">
+              <span style="color:var(--ink3)">% cobrado</span>
+              <span style="font-weight:700;color:${honProgColor}">${honPct}%</span>
+            </div>
+            <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+              <div style="height:100%;width:${honPct}%;background:${honProgColor};border-radius:4px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGADOS A TERCEROS — siempre visible -->
+    <div style="background:var(--surface);border:1px solid var(--green-border);border-radius:10px;overflow:hidden">
+      <div style="padding:16px 22px;background:var(--green-bg);border-bottom:1px solid var(--green-border);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:12px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--green)">✓ Pagados a terceros</div>
+        <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--green)">${fmx(r.totalPagado3rd)}</div>
+      </div>
+      <div style="overflow-y:auto;max-height:280px">
+        ${Object.entries(r.pagados).filter(([,v])=>v>0).map(([k,v])=>`
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 22px;border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:22px;height:22px;border-radius:50%;background:var(--green-bg);border:1px solid var(--green-border);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--green);flex-shrink:0">✓</div>
+              <span style="font-size:13px;font-weight:500">${k}</span>
+            </div>
+            <span style="font-family:var(--mono);font-size:14px;font-weight:600;color:var(--green)">${fmx(v)}</span>
+          </div>`).join('') || `<div style="padding:22px;color:var(--ink3);font-size:13px">Sin pagos a terceros registrados</div>`}
+      </div>
+    </div>`;
+}
+
+function setActiveNav(id) {
+  ['nav-resumen','nav-honorarios','nav-isai'].forEach(x => document.getElementById(x)?.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+  activeEsc = null;
+  renderList();
+}
+
+function showHonorarios() {
+  setActiveNav('nav-honorarios');
+  document.getElementById('empty-state').style.display = 'none';
+  const content = document.getElementById('content');
+  content.style.display = 'block';
+
+  // Escrituras con honorarios pendientes
+  const pending = allRows
+    .filter(r => r.hon_pend > 0.5)
+    .sort((a,b) => b.hon_pend - a.hon_pend);
+
+  const totalPend = pending.reduce((s,r) => s+r.hon_pend, 0);
+  const totalPagado = pending.reduce((s,r) => s+r.hon_pagado, 0);
+  const totalGeneral = allRows.reduce((s,r) => s+r.hon_total, 0);
+  const totalPagadoAll = allRows.reduce((s,r) => s+r.hon_pagado, 0);
+  const totalPendAll = allRows.reduce((s,r) => s+r.hon_pend, 0);
+
+  const rows = pending.map(r => {
+    const pct = r.hon_total > 0 ? Math.min(100, Math.round(r.hon_pagado/r.hon_total*100)) : 0;
+    const progColor = pct === 0 ? 'var(--red)' : 'var(--amber)';
+    const honBadge = r.hon_pagado > 0.5
+      ? `<span class="badge badge-amber">◑ Parcial</span>`
+      : `<span class="badge badge-red">✗ Sin cobro</span>`;
+    return `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px">
+      <!-- ROW HEADER -->
+      <div style="display:grid;grid-template-columns:auto 1fr auto;gap:0;align-items:stretch;cursor:pointer" onclick="showEsc('${r.esc}')">
+        <!-- ESC NUM -->
+        <div style="padding:18px 24px;background:var(--surface2);border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;min-width:130px">
+          <div style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--ink)">Esc. ${r.esc}</div>
+          <div style="font-size:11px;color:var(--ink3);font-family:var(--mono);margin-top:3px">Exp. ${r.exp||'—'}</div>
+          <div style="margin-top:8px">${honBadge}</div>
+        </div>
+        <!-- CLIENT & INFO -->
+        <div style="padding:18px 24px;border-right:1px solid var(--border)">
+          <div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:3px">${r.cliente||'—'}</div>
+          <div style="font-size:12px;color:var(--ink2);margin-bottom:3px">${r.op||'—'}</div>
+          <div style="font-size:12px;color:var(--ink3)">${(r.abogado||'—').replace('LIC. ','').replace('LIC.','')}</div>
+          <div style="margin-top:10px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink3);margin-bottom:5px">
+              <span>Cobrado ${fmx(r.hon_pagado)} de ${fmx(r.hon_total)}</span>
+              <span style="font-weight:600;color:${progColor}">${pct}%</span>
+            </div>
+            <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+              <div style="height:100%;width:${pct}%;background:${progColor};border-radius:4px"></div>
+            </div>
+          </div>
+        </div>
+        <!-- AMOUNTS -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;min-width:480px">
+          <div style="padding:18px 20px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);font-weight:600;margin-bottom:6px">Honorarios (sin IVA)</div>
+            <div style="font-family:var(--mono);font-size:16px;font-weight:600;color:var(--ink)">${fmx(r.hon_bruto)}</div>
+          </div>
+          <div style="padding:18px 20px;border-right:1px solid var(--border);background:var(--green-bg);display:flex;flex-direction:column;justify-content:center">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--green);font-weight:600;margin-bottom:6px">✓ Ya cobrado</div>
+            <div style="font-family:var(--mono);font-size:16px;font-weight:600;color:var(--green)">${fmx(r.hon_pagado)}</div>
+          </div>
+          <div style="padding:18px 20px;background:var(--red-bg);display:flex;flex-direction:column;justify-content:center">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);font-weight:700;margin-bottom:6px">✗ Pendiente</div>
+            <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--red)">${fmx(r.hon_pend)}</div>
+          </div>
+        </div>
+      </div>
+      <!-- DESGLOSE DETAIL -->
+      <div style="padding:16px 24px;background:var(--surface2);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);font-weight:600;margin-bottom:4px">Fecha firma</div>
+          <div style="font-size:13px;font-weight:500;font-family:var(--mono)">${fdate(r.fecha)}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);font-weight:600;margin-bottom:4px">IVA (16%)</div>
+          <div style="font-size:13px;font-weight:500;font-family:var(--mono)">${fmx(r.hon_iva)}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);font-weight:600;margin-bottom:4px">Total con IVA</div>
+          <div style="font-size:13px;font-weight:600;font-family:var(--mono);color:var(--gold)">${fmx(r.hon_total)}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);font-weight:600;margin-bottom:4px">Estado general esc.</div>
+          <div>${r.status==='pagado'?'<span class="badge badge-green">✓ Pagado</span>':r.status==='parcial'?'<span class="badge badge-amber">◑ Parcial</span>':'<span class="badge badge-red">✗ Pendiente</span>'}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  content.innerHTML = `
+    <!-- HEADER -->
+    <div style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:24px;font-weight:500;color:var(--ink);margin-bottom:4px">Honorarios Pendientes</div>
+          <div style="font-size:13px;color:var(--ink3)">${pending.length} escrituras con honorarios por cobrar · Clic en cualquier tarjeta para ver el detalle completo</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="hon-search" placeholder="Buscar escritura o cliente…" oninput="filterHonorarios()" style="border:1px solid var(--border2);border-radius:4px;padding:8px 12px;font-family:var(--font);font-size:13px;color:var(--ink);background:var(--surface);outline:none;width:240px">
+          <select id="hon-sort" onchange="filterHonorarios()" style="border:1px solid var(--border2);border-radius:4px;padding:8px 12px;font-family:var(--font);font-size:13px;background:var(--surface);color:var(--ink);outline:none">
+            <option value="pend-desc">Mayor pendiente primero</option>
+            <option value="pend-asc">Menor pendiente primero</option>
+            <option value="esc-asc">No. escritura ↑</option>
+            <option value="esc-desc">No. escritura ↓</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px">
+      <div style="background:var(--surface);border:1px solid var(--red-border);border-radius:10px;padding:20px 22px;border-top:4px solid var(--red)">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:var(--red);margin-bottom:8px">✗ Total por cobrar</div>
+        <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--red)">${fmx(totalPendAll)}</div>
+        <div style="font-size:12px;color:var(--ink3);margin-top:4px">${allRows.filter(r=>r.hon_pend>0.5).length} escrituras pendientes</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--green-border);border-radius:10px;padding:20px 22px;border-top:4px solid var(--green)">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:var(--green);margin-bottom:8px">✓ Total cobrado</div>
+        <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--green)">${fmx(totalPagadoAll)}</div>
+        <div style="font-size:12px;color:var(--ink3);margin-top:4px">${allRows.filter(r=>r.hon_pend<=0.5&&r.hon_total>0).length} escrituras cobradas</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--gold-border);border-radius:10px;padding:20px 22px;border-top:4px solid var(--gold)">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:var(--gold);margin-bottom:8px">★ Total honorarios</div>
+        <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--gold)">${fmx(totalGeneral)}</div>
+        <div style="font-size:12px;color:var(--ink3);margin-top:4px">${allRows.filter(r=>r.hon_total>0).length} escrituras con factura</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 22px;border-top:4px solid var(--border2)">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:var(--ink3);margin-bottom:8px">% Cobrado</div>
+        <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink)">${totalGeneral>0?Math.round(totalPagadoAll/totalGeneral*100):0}%</div>
+        <div style="margin-top:10px;height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${totalGeneral>0?Math.round(totalPagadoAll/totalGeneral*100):0}%;background:var(--green);border-radius:4px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIST -->
+    <div id="hon-list">
+      ${rows || '<div style="padding:40px;text-align:center;color:var(--green);font-size:15px;background:var(--surface);border-radius:10px;border:1px solid var(--green-border)">✓ No hay honorarios pendientes</div>'}
+    </div>`;
+}
+
+function filterHonorarios() {
+  const q = (document.getElementById('hon-search')?.value||'').toLowerCase();
+  const sort = document.getElementById('hon-sort')?.value || 'pend-desc';
+
+  let rows = allRows.filter(r => r.hon_pend > 0.5);
+
+  if (q) rows = rows.filter(r =>
+    [r.esc, r.exp, r.cliente, r.op, r.abogado].some(v => v && String(v).toLowerCase().includes(q))
+  );
+
+  if (sort === 'pend-desc') rows.sort((a,b) => b.hon_pend - a.hon_pend);
+  else if (sort === 'pend-asc') rows.sort((a,b) => a.hon_pend - b.hon_pend);
+  else if (sort === 'esc-asc') rows.sort((a,b) => parseInt(a.esc)-parseInt(b.esc));
+  else if (sort === 'esc-desc') rows.sort((a,b) => parseInt(b.esc)-parseInt(a.esc));
+
+  const list = document.getElementById('hon-list');
+  if (!list) return;
+
+  if (!rows.length) {
+    list.innerHTML = '<div style="padding:32px;text-align:center;color:var(--ink3);font-size:13px;background:var(--surface);border-radius:10px;border:1px solid var(--border)">Sin resultados para la búsqueda</div>';
+    return;
+  }
+
+  list.innerHTML = rows.map(r => {
+    const pct = r.hon_total > 0 ? Math.min(100, Math.round(r.hon_pagado/r.hon_total*100)) : 0;
+    const progColor = pct === 0 ? 'var(--red)' : 'var(--amber)';
+    const honBadge = r.hon_pagado > 0.5
+      ? `<span class="badge badge-amber">◑ Parcial</span>`
+      : `<span class="badge badge-red">✗ Sin cobro</span>`;
+    return `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px">
+      <div style="display:grid;grid-template-columns:auto 1fr auto;gap:0;align-items:stretch;cursor:pointer" onclick="showEsc('${r.esc}')">
+        <div style="padding:18px 24px;background:var(--surface2);border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;min-width:130px">
+          <div style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--ink)">Esc. ${r.esc}</div>
+          <div style="font-size:11px;color:var(--ink3);font-family:var(--mono);margin-top:3px">Exp. ${r.exp||'—'}</div>
+          <div style="margin-top:8px">${honBadge}</div>
+        </div>
+        <div style="padding:18px 24px;border-right:1px solid var(--border)">
+          <div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:3px">${r.cliente||'—'}</div>
+          <div style="font-size:12px;color:var(--ink2);margin-bottom:3px">${r.op||'—'}</div>
+          <div style="font-size:12px;color:var(--ink3)">${(r.abogado||'—').replace('LIC. ','').replace('LIC.','')}</div>
+          <div style="margin-top:10px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink3);margin-bottom:5px">
+              <span>Cobrado ${fmx(r.hon_pagado)} de ${fmx(r.hon_total)}</span>
+              <span style="font-weight:600;color:${progColor}">${pct}%</span>
+            </div>
+            <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+              <div style="height:100%;width:${pct}%;background:${progColor};border-radius:4px"></div>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;min-width:480px">
+          <div style="padding:18px 20px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);font-weight:600;margin-bottom:6px">Honorarios (sin IVA)</div>
+            <div style="font-family:var(--mono);font-size:16px;font-weight:600;color:var(--ink)">${fmx(r.hon_bruto)}</div>
+          </div>
+          <div style="padding:18px 20px;border-right:1px solid var(--border);background:var(--green-bg);display:flex;flex-direction:column;justify-content:center">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--green);font-weight:600;margin-bottom:6px">✓ Ya cobrado</div>
+            <div style="font-family:var(--mono);font-size:16px;font-weight:600;color:var(--green)">${fmx(r.hon_pagado)}</div>
+          </div>
+          <div style="padding:18px 20px;background:var(--red-bg);display:flex;flex-direction:column;justify-content:center">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);font-weight:700;margin-bottom:6px">✗ Pendiente</div>
+            <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--red)">${fmx(r.hon_pend)}</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:14px 24px;background:var(--surface2);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);font-weight:600;margin-bottom:4px">Fecha firma</div>
+          <div style="font-size:13px;font-weight:500;font-family:var(--mono)">${fdate(r.fecha)}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);font-weight:600;margin-bottom:4px">IVA (16%)</div>
+          <div style="font-size:13px;font-weight:500;font-family:var(--mono)">${fmx(r.hon_iva)}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);font-weight:600;margin-bottom:4px">Total con IVA</div>
+          <div style="font-size:13px;font-weight:600;font-family:var(--mono);color:var(--gold)">${fmx(r.hon_total)}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);font-weight:600;margin-bottom:4px">Estado escritura</div>
+          <div>${r.status==='pagado'?'<span class="badge badge-green">✓ Pagado</span>':r.status==='parcial'?'<span class="badge badge-amber">◑ Parcial</span>':'<span class="badge badge-red">✗ Pendiente</span>'}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+// ── ISAI PENDIENTE VIEW ───────────────────────────────────
+function showIsai() {
+  setActiveNav('nav-isai');
+  document.getElementById('empty-state').style.display = 'none';
+  const content = document.getElementById('content');
+  content.style.display = 'block';
+
+  const conIsai = allRows.filter(r => r.isai_pend > 0.5).sort((a,b) => b.isai_pend - a.isai_pend);
+  const totalIsai = conIsai.reduce((s,r) => s + r.isai_pend, 0);
+
+  const tableRows = conIsai.map(r => {
+    const statusBadge = Math.abs(r.debe) < 1
+      ? `<span class="badge badge-green">✓ Pagado</span>`
+      : `<span class="badge badge-red">✗ Saldo pend.</span>`;
+    return `<tr onclick="showEsc('${r.esc}')">
+      <td><span style="font-family:var(--mono);font-weight:600;font-size:14px">Esc. ${r.esc}</span><div style="font-size:10px;color:var(--ink3);font-family:var(--mono);margin-top:2px">Exp. ${r.exp||'—'}</div></td>
+      <td style="font-size:11px;color:var(--ink3);white-space:nowrap;font-family:var(--mono)">${fdate(r.fecha)}</td>
+      <td><div style="font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.cliente||'—'}</div><div style="font-size:11px;color:var(--ink2);margin-top:2px">${r.op||''}</div></td>
+      <td style="font-size:11px;color:var(--ink2);white-space:nowrap">${(r.abogado||'—').replace('LIC. ','').replace('LIC.','')}</td>
+      <td style="text-align:center">${statusBadge}</td>
+      <td style="text-align:right;background:var(--blue-bg);padding:10px 16px">
+        <span style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--blue)">${fmx(r.isai_pend)}</span>
+      </td>
+    </tr>`;
+  }).join('');
+
+  content.innerHTML = `
+    <div style="margin-bottom:20px">
+      <div style="font-size:22px;font-weight:500;color:var(--ink);margin-bottom:4px">ISAI Pendiente</div>
+      <div style="font-size:13px;color:var(--ink3)">${conIsai.length} escrituras con ISAI por liquidar · Solo aparecen las que tienen valor en esta columna</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px">
+      <div style="background:var(--surface);border:1px solid var(--blue-border);border-radius:10px;padding:20px 22px;border-top:4px solid var(--blue)">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:var(--blue);margin-bottom:8px">Total ISAI pendiente</div>
+        <div style="font-family:var(--mono);font-size:26px;font-weight:700;color:var(--blue)">${fmx(totalIsai)}</div>
+        <div style="font-size:12px;color:var(--ink3);margin-top:4px">${conIsai.length} escrituras</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 22px;border-top:4px solid var(--green)">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:var(--green);margin-bottom:8px">ISAI pagado</div>
+        <div style="font-family:var(--mono);font-size:26px;font-weight:700;color:var(--green)">${fmx(allRows.reduce((s,r)=>s+r.isai_pag,0))}</div>
+        <div style="font-size:12px;color:var(--ink3);margin-top:4px">${allRows.filter(r=>r.isai_pag>0).length} escrituras</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 22px;border-top:4px solid var(--border2)">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:var(--ink3);margin-bottom:8px">Promedio por escritura</div>
+        <div style="font-family:var(--mono);font-size:26px;font-weight:700;color:var(--ink)">${conIsai.length > 0 ? fmx(totalIsai/conIsai.length) : '$0'}</div>
+        <div style="font-size:12px;color:var(--ink3);margin-top:4px">ISAI ~4.5% del valor del inmueble</div>
+      </div>
+    </div>
+
+    <div class="ov-table-wrap">
+      <div class="ov-table-head">
+        <span class="ov-table-title" style="color:var(--blue)">Escrituras con ISAI pendiente (${conIsai.length})</span>
+        <span style="font-size:11px;color:var(--ink3)">Ordenadas por mayor monto · Clic para ver detalle</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="ov-table">
+          <thead><tr>
+            <th>Escritura / Exp.</th>
+            <th>Fecha firma</th>
+            <th>Cliente / Operación</th>
+            <th>Abogado</th>
+            <th style="text-align:center">Debe Cliente</th>
+            <th style="text-align:right;background:var(--blue-bg);color:var(--blue)">ISAI Pendiente</th>
+          </tr></thead>
+          <tbody>${tableRows || '<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--green)">✓ No hay ISAI pendiente</td></tr>'}</tbody>
+          <tfoot><tr style="background:var(--surface2);font-weight:600">
+            <td colspan="5" style="padding:10px 14px;font-size:11px;color:var(--ink3)">TOTAL</td>
+            <td style="text-align:right;background:var(--blue-bg);padding:10px 16px;color:var(--blue);font-family:var(--mono);font-size:14px">${fmx(totalIsai)}</td>
+          </tfoot>
+        </table>
+      </div>
+    </div>`;
+  renderList();
+}
+function toggleSection(id) {
+  const body = document.getElementById(id);
+  const arr = document.getElementById('arr-'+id);
+  body.classList.toggle('open');
+  arr.classList.toggle('open');
+}
+
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const btn = document.getElementById('toggle-btn');
+  const collapsed = sb.classList.toggle('collapsed');
+  btn.textContent = collapsed ? '▶' : '◀';
+  btn.title = collapsed ? 'Expandir panel' : 'Colapsar panel';
+}
+</script>
+<!-- BUSCAR EXPEDIENTE MODAL -->
+<div class="exp-modal-overlay" id="exp-modal-overlay" onclick="closeExpModalOnOverlay(event)">
+  <div class="exp-modal" id="exp-modal">
+    <div class="exp-modal-header">
+      <span class="exp-modal-title">🔍 Buscar Expediente / Escritura</span>
+      <button class="exp-modal-close" onclick="closeExpModal()">✕</button>
+    </div>
+    <div class="exp-modal-body">
+      <p class="exp-hint">Escribe el número de expediente, escritura, nombre del cliente o tipo de operación.</p>
+      <div class="exp-input-wrap">
+        <input class="exp-input" type="text" id="exp-input" placeholder="Ej: 2024-150, Esc. 42, Juan García…" oninput="searchExp()" onkeydown="expKeydown(event)" autocomplete="off">
+        <button class="exp-go-btn" onclick="searchExp()">Buscar</button>
+      </div>
+      <div class="exp-results" id="exp-results">
+        <div class="exp-no-results" style="color:var(--ink3)">Escribe para buscar…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openExpModal() {
+  if (!allRows.length) { alert('Primero carga un archivo Excel.'); return; }
+  document.getElementById('exp-modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('exp-input').focus(), 80);
+}
+function closeExpModal() {
+  document.getElementById('exp-modal-overlay').classList.remove('open');
+  document.getElementById('exp-input').value = '';
+  document.getElementById('exp-results').innerHTML = '<div class="exp-no-results" style="color:var(--ink3)">Escribe para buscar…</div>';
+}
+function closeExpModalOnOverlay(e) {
+  if (e.target === document.getElementById('exp-modal-overlay')) closeExpModal();
+}
+function expKeydown(e) {
+  if (e.key === 'Escape') closeExpModal();
+}
+function searchExp() {
+  const q = (document.getElementById('exp-input').value || '').trim().toLowerCase();
+  const res = document.getElementById('exp-results');
+  if (!q) {
+    res.innerHTML = '<div class="exp-no-results" style="color:var(--ink3)">Escribe para buscar…</div>';
+    return;
+  }
+  const matches = allRows.filter(r =>
+    [r.esc, r.exp, r.cliente, r.op, r.abogado].some(v => v && String(v).toLowerCase().includes(q))
+  );
+  if (!matches.length) {
+    res.innerHTML = '<div class="exp-no-results">Sin resultados para <strong>"' + document.getElementById('exp-input').value + '"</strong></div>';
+    return;
+  }
+  res.innerHTML = matches.map(r => {
+    const debeAbs = Math.abs(r.debe);
+    const statusBadge = debeAbs < 1
+      ? `<span class="badge badge-green" style="font-size:10px">✓ Pagado</span>`
+      : `<span class="badge badge-red" style="font-size:10px">✗ ${fmx(r.debe)}</span>`;
+    const honBadge = r.hon_pend > 0.5
+      ? `<span class="badge badge-amber" style="font-size:10px">Hon. pend.</span>`
+      : r.hon_total > 0
+      ? `<span class="badge badge-green" style="font-size:10px">Hon. ✓</span>`
+      : '';
+    return `<div class="exp-result-item" onclick="goToEsc('${r.esc}')">
+      <div class="exp-result-left">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="exp-result-esc">Esc. ${r.esc}</span>
+          <span class="exp-result-exp">Exp. ${r.exp||'—'}</span>
+        </div>
+        <div class="exp-result-client">${r.cliente||'Sin cliente'}</div>
+        <div class="exp-result-op">${r.op||'—'} · ${fdate(r.fecha)}</div>
+      </div>
+      <div class="exp-result-right">
+        ${statusBadge}
+        ${honBadge}
+      </div>
+    </div>`;
+  }).join('');
+}
+function goToEsc(esc) {
+  closeExpModal();
+  showEsc(esc);
+  // Make sure sidebar shows the item highlighted
+  const sb = document.getElementById('sidebar');
+  if (sb && sb.classList.contains('collapsed')) toggleSidebar();
+}
+</script>
+
+</body>
